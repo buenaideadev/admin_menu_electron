@@ -19,7 +19,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 18
 
       - name: Install dependencies
         run: npm install
@@ -28,11 +28,4 @@ jobs:
         run: npm run build
 
       - name: Build Electron app
-        run: npx electron-builder --linux AppImage
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-build
-          path: dist/*.AppImage
-        
+        run: npx electron-builder
