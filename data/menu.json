@@ -1,0 +1,137 @@
+[
+  {
+    "department_id": "dep_1776545451298_26",
+    "department_name": "1_dep",
+    "url": "/1_dep",
+    "styles": {
+      "color": "#ff0000",
+      "negrita": false,
+      "curisva": false,
+      "subrayado": false
+    },
+    "visibility": {
+      "desktop": true,
+      "mobile": true
+    },
+    "categories": [
+      {
+        "category_id": "cat_1776545515500_143",
+        "category_name": "cat_1",
+        "url": "/cat_1",
+        "styles": {
+          "color": "#04ff00",
+          "negrita": false,
+          "curisva": false,
+          "subrayado": true
+        },
+        "visibility": {
+          "desktop": true,
+          "mobile": true
+        },
+        "subcategories": [
+          {
+            "subcategory_id": 1776545786571,
+            "subcategory_name": "sub_1",
+            "url": "/sub_1",
+            "styles": {
+              "color": "#1100ff",
+              "negrita": true,
+              "curisva": true,
+              "subrayado": true
+            },
+            "visibility": {
+              "desktop": true,
+              "mobile": true
+            }
+          },
+          {
+            "subcategory_id": 1776545835663,
+            "subcategory_name": "sub_2",
+            "url": "/sub_2",
+            "styles": {
+              "color": "#1100ff",
+              "negrita": true,
+              "curisva": true,
+              "subrayado": true
+            },
+            "visibility": {
+              "desktop": true,
+              "mobile": true
+            }
+          }
+        ],
+        "category_image": "https://mateuarg.vtexassets.com/assets/vtex.file-manager-graphql/images/9c4cdcb0-323a-4116-bb81-280ec01efaa1___cfade8d63b7e75f1598b5f41125d2232.png"
+      },
+      {
+        "category_id": "cat_1776545610860_651",
+        "category_name": "cat_3",
+        "url": "/cat_3",
+        "styles": {
+          "color": "#04ff00",
+          "negrita": false,
+          "curisva": false,
+          "subrayado": true
+        },
+        "visibility": {
+          "desktop": true,
+          "mobile": true
+        },
+        "subcategories": [],
+        "category_image": "https://mateuarg.vtexassets.com/assets/vtex.file-manager-graphql/images/33b1bf7d-7472-433c-9c9e-a03ef8179318___46a52cadb56475312fa741472698709a.png"
+      },
+      {
+        "category_id": "cat_1776545563052_389",
+        "category_name": "cat_2",
+        "url": "/cat_2",
+        "styles": {
+          "color": "#04ff00",
+          "negrita": false,
+          "curisva": false,
+          "subrayado": true
+        },
+        "visibility": {
+          "desktop": true,
+          "mobile": true
+        },
+        "subcategories": [],
+        "category_image": "https://mateuarg.vtexassets.com/assets/vtex.file-manager-graphql/images/f1687ecd-d670-4036-a77f-24b7141ff353___36df657cb603a7dc98e033eba1a37fcd.png"
+      }
+    ],
+    "category_image": "https://mateuarg.vtexassets.com/assets/vtex.file-manager-graphql/images/101e194f-79f1-4e67-8cfd-de8516a88e56___0ee91f8df27e958143f91334c67e9f7f.png"
+  },
+  {
+    "department_id": "dep_1776545653053_524",
+    "department_name": "2_dep",
+    "url": "/2_dep",
+    "styles": {
+      "color": "#ff0000",
+      "negrita": false,
+      "curisva": false,
+      "subrayado": false
+    },
+    "visibility": {
+      "desktop": true,
+      "mobile": true
+    },
+    "categories": [
+      {
+        "category_id": "cat_1776577776857_504",
+        "category_name": "cat_1",
+        "url": "/cat_1",
+        "styles": {
+          "color": "#04ff00",
+          "negrita": false,
+          "curisva": false,
+          "subrayado": false
+        },
+        "visibility": {
+          "desktop": true,
+          "mobile": true
+        },
+        "subcategories": [],
+        "category_image": "https://thumbs.dreamstime.com/b/no-image-available-icon-flat-vector-no-image-available-icon-flat-vector-illustration-132482953.jpg"
+      }
+    ],
+    "category_image": "https://mateuarg.vtexassets.com/assets/vtex.file-manager-graphql/images/030d1295-7a82-4eca-8271-385b93a3b991___2b9d1d7f4d0fc3d371f2abe6b2c642b2.png"
+  }
+]

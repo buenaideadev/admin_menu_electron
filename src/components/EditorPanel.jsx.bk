@@ -1,0 +1,64 @@
+export default function EditorPanel({ node, setTree }) {
+  if (!node) return <div style={{ padding: 20 }}>Seleccioná algo</div>
+
+  const { node: data, level } = node
+
+  const updateField = (field, value) => {
+    data[field] = value
+    setTree(prev => [...prev])
+  }
+
+  return (
+    <div style={{ flex: 1, padding: 20 }}>
+      <h2>{level}</h2>
+
+      <input
+        value={data.department_name || data.category_name || data.subcategory_name}
+        onChange={(e) => {
+          const key = level + '_name'
+          updateField(key, e.target.value)
+        }}
+      />
+
+      <input
+        value={data.url}
+        onChange={(e) => updateField('url', e.target.value)}
+      />
+
+      {/* 🎨 styles */}
+      <input
+        type="color"
+        value={data.styles.color}
+        onChange={(e) => {
+          data.styles.color = e.target.value
+          setTree(prev => [...prev])
+        }}
+      />
+
+      {/* 👁 visibility */}
+      <label>
+        Desktop
+        <input
+          type="checkbox"
+          checked={data.visibility.desktop}
+          onChange={(e) => {
+            data.visibility.desktop = e.target.checked
+            setTree(prev => [...prev])
+          }}
+        />
+      </label>
+
+      <label>
+        Mobile
+        <input
+          type="checkbox"
+          checked={data.visibility.mobile}
+          onChange={(e) => {
+            data.visibility.mobile = e.target.checked
+            setTree(prev => [...prev])
+          }}
+        />
+      </label>
+    </div>
+  )
+}

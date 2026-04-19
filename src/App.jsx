@@ -1,0 +1,1090 @@
+import { useState, useEffect } from 'react'
+import { createDepartment, createCategory } from './utils/treeHelpers'
+
+function App() {
+
+    const [copied, setCopied] = useState(false)
+    const [showJsonModal, setShowJsonModal] = useState(false)
+    const [tree, setTree] = useState([])
+    const [originalTree, setOriginalTree] = useState([])
+    const [selectedId, setSelectedId] = useState(null)
+    const [showSaved, setShowSaved] = useState(false)
+    const [savedMsg, setSavedMsg] = useState('')
+
+    // FUNCTIONS FOR LIGHT AND DARK
+    const [isDark, setIsDark] = useState(() => {
+        const saved = localStorage.getItem('theme')
+        return saved === 'dark'
+    })
+
+    useEffect(() => {
+        localStorage.setItem('theme', isDark ? 'Modo oscuro' : 'Modo claro')
+    }, [isDark])
+    // FIN FUNCTIONS FOR LIGHT AND DARK
+
+    // 🔥 NUEVO
+    const [expanded, setExpanded] = useState({})
+
+    useEffect(() => {
+        if (window.api) {
+            window.api.loadJSON().then(data => {
+                const safeData = data || []
+                setTree(JSON.parse(JSON.stringify(safeData)))
+                setOriginalTree(JSON.parse(JSON.stringify(safeData)))
+            })
+        }
+    }, [])
+
+    const hasChanges =
+        JSON.stringify(tree) !== JSON.stringify(originalTree)
+
+    const save = async () => {
+
+        if (window.api) {
+
+            try {
+
+                await window.api.saveJSON(tree);
+
+                setOriginalTree(JSON.parse(JSON.stringify(tree)))
+                setSavedMsg('✅ Mega menú guardado correctamente!')
+                setShowSaved(true)
+                setTimeout(() => setShowSaved(false), 2000)
+
+                setShowJsonModal(true)     // 👈 abrimos modal
+
+            } catch (error) {
+
+                setSavedMsg('❌ Error al guardar los cambios');
+                setShowSaved(true)
+                setTimeout(() => setShowSaved(false), 2000)
+
+            }
+
+        }
+
+    }
+
+    const addDepartment = () => {
+        setTree(prev => [...prev, createDepartment()])
+    }
+
+    const addCategory = () => {
+        const dep = tree.find(d => d.department_id === selectedId)
+        if (!dep) return
+
+        setTree(prev =>
+            prev.map(d =>
+                d.department_id === selectedId
+                    ? {
+                        ...d,
+                        categories: [...(d.categories || []), createCategory()]
+                    }
+                    : d
+            )
+        )
+    }
+
+    const deleteDepartment = () => {
+        const confirmDelete = window.confirm('¿Eliminar departamento?')
+        if (!confirmDelete) return
+
+        setTree(prev =>
+            prev.filter(d => d.department_id !== selectedId)
+        )
+
+        setSelectedId(null)
+    }
+
+    const moveDepartment = (direction) => {
+        const index = tree.findIndex(d => d.department_id === selectedId)
+        if (index === -1) return
+
+        const newTree = [...tree]
+
+        if (direction === 'up' && index > 0) {
+            ;[newTree[index - 1], newTree[index]] =
+                [newTree[index], newTree[index - 1]]
+        }
+
+        if (direction === 'down' && index < newTree.length - 1) {
+            ;[newTree[index + 1], newTree[index]] =
+                [newTree[index], newTree[index + 1]]
+        }
+
+        setTree(newTree)
+    }
+
+    const addSubcategory = () => {
+        setTree(prev =>
+            prev.map(dep => ({
+                ...dep,
+                categories: dep.categories?.map(cat =>
+                    cat.category_id === selectedId
+                        ? {
+                            ...cat,
+                            subcategories: [
+                                ...(cat.subcategories || []),
+                                {
+                                    subcategory_id: Date.now(),
+                                    subcategory_name: 'Nueva subcategoría',
+                                    url: '',
+                                    styles: {
+                                        color: '#000000',
+                                        negrita: false,
+                                        curisva: false,
+                                        subrayado: false
+                                    },
+                                    visibility: {
+                                        desktop: true,
+                                        mobile: true
+                                    }
+                                }
+                            ]
+                        }
+                        : cat
+                )
+            }))
+        )
+    }
+
+    const deleteCategory = () => {
+        if (!window.confirm('¿Eliminar categoría?')) return
+
+        setTree(prev =>
+            prev.map(dep => ({
+                ...dep,
+                categories: dep.categories?.filter(
+                    cat => cat.category_id !== selectedId
+                )
+            }))
+        )
+
+        setSelectedId(null)
+    }
+
+    const deleteSubcategory = () => {
+        if (!window.confirm('¿Eliminar subcategoría?')) return
+
+        setTree(prev =>
+            prev.map(dep => ({
+                ...dep,
+                categories: dep.categories?.map(cat => {
+                    const exists = cat.subcategories?.some(
+                        sub => sub.subcategory_id === selectedId
+                    )
+
+                    if (!exists) return cat
+
+                    return {
+                        ...cat,
+                        subcategories: cat.subcategories.filter(
+                            sub => sub.subcategory_id !== selectedId
+                        )
+                    }
+                })
+            }))
+        )
+
+        setSelectedId(null)
+    }
+
+    const moveCategory = (direction) => {
+        setTree(prev =>
+            prev.map(dep => {
+                const index = dep.categories?.findIndex(
+                    cat => cat.category_id === selectedId
+                )
+
+                if (index === -1 || index === undefined) return dep
+
+                const newCats = [...dep.categories]
+
+                if (direction === 'up' && index > 0) {
+                    ;[newCats[index - 1], newCats[index]] =
+                        [newCats[index], newCats[index - 1]]
+                }
+
+                if (direction === 'down' && index < newCats.length - 1) {
+                    ;[newCats[index + 1], newCats[index]] =
+                        [newCats[index], newCats[index + 1]]
+                }
+
+                return { ...dep, categories: newCats }
+            })
+        )
+    }
+
+    const moveSubcategory = (direction) => {
+        setTree(prev =>
+            prev.map(dep => ({
+                ...dep,
+                categories: dep.categories?.map(cat => {
+
+                    const index = cat.subcategories?.findIndex(
+                        sub => sub.subcategory_id === selectedId
+                    )
+
+                    // si no está en esta categoría → no tocar
+                    if (index === undefined || index === -1) return cat
+
+                    const newSubs = [...(cat.subcategories || [])]
+
+                    if (direction === 'up' && index > 0) {
+                        ;[newSubs[index - 1], newSubs[index]] =
+                            [newSubs[index], newSubs[index - 1]]
+                    }
+
+                    if (direction === 'down' && index < newSubs.length - 1) {
+                        ;[newSubs[index + 1], newSubs[index]] =
+                            [newSubs[index], newSubs[index + 1]]
+                    }
+
+                    return {
+                        ...cat,
+                        subcategories: newSubs
+                    }
+                })
+            }))
+        )
+    }
+
+    // 🔥 NUEVO
+    const toggleExpand = (depId) => {
+        setExpanded(prev => ({
+            ...prev,
+            [depId]: !prev[depId]
+        }))
+    }
+
+    // 🔥 selección existente (NO TOCAR)
+    let selected = null
+    let isCategory = false
+    let isSubcategory = false
+
+    for (const dep of tree) {
+
+        if (dep.department_id === selectedId) {
+            selected = dep
+            isCategory = false
+            break
+        }
+
+        for (const cat of dep.categories || []) {
+
+            if (cat.category_id === selectedId) {
+                selected = cat
+                isCategory = true
+                break
+            }
+
+            for (const sub of cat.subcategories || []) {
+                if (sub.subcategory_id === selectedId) {
+                    selected = sub
+                    isSubcategory = true
+                    break
+                }
+            }
+
+            if (selected) break
+
+        }
+
+        if (selected) break
+
+    }
+
+    const updateField = (field, value) => {
+        setTree(prev =>
+            prev.map(dep => {
+
+                // 🟢 DEP
+                if (!isCategory && !isSubcategory && dep.department_id === selectedId) {
+                    return { ...dep, [field]: value }
+                }
+
+                return {
+                    ...dep,
+                    categories: dep.categories?.map(cat => {
+
+                        // 🔵 CAT
+                        if (isCategory && cat.category_id === selectedId) {
+                            return { ...cat, [field]: value }
+                        }
+
+                        // 🟣 SUB (FIX REAL)
+                        if (isSubcategory) {
+                            const exists = cat.subcategories?.some(
+                                sub => sub.subcategory_id === selectedId
+                            )
+
+                            if (!exists) return cat
+
+                            return {
+                                ...cat,
+                                subcategories: cat.subcategories.map(sub =>
+                                    sub.subcategory_id === selectedId
+                                        ? { ...sub, [field]: value }
+                                        : sub
+                                )
+                            }
+                        }
+
+                        return cat
+                    })
+                }
+            })
+        )
+    }
+
+    const updateNestedField = (parent, field, value) => {
+        setTree(prev =>
+            prev.map(dep => {
+                if (!isCategory && dep.department_id === selectedId) {
+                    return {
+                        ...dep,
+                        [parent]: {
+                            ...dep[parent],
+                            [field]: value
+                        }
+                    }
+                }
+
+                return {
+                    ...dep,
+                    categories: dep.categories?.map(cat => {
+
+                        if (isCategory && cat.category_id === selectedId) {
+                            return {
+                                ...cat,
+                                [parent]: {
+                                    ...cat[parent],
+                                    [field]: value
+                                }
+                            }
+                        }
+
+                        if (isSubcategory) {
+                            return {
+                                ...cat,
+                                subcategories: cat.subcategories?.map(sub =>
+                                    sub.subcategory_id === selectedId
+                                        ? {
+                                            ...sub,
+                                            [parent]: {
+                                                ...sub[parent],
+                                                [field]: value
+                                            }
+                                        }
+                                        : sub
+                                )
+                            }
+                        }
+
+                        return cat
+                    })
+                }
+            })
+        )
+    }
+
+    const handleCopy = (data) => {
+
+        const text = JSON.stringify(data, null, 2);
+
+        // Intento 1: API Moderna (Navigator)
+        if (navigator.clipboard && window.isSecureContext) {
+
+            navigator.clipboard.writeText(text)
+                .then(() => {
+
+                    setCopied(true)
+
+                    setTimeout(() => {
+                        setCopied(false)
+                    }, 1500)
+
+                    console.log("Copiado con clipboard");
+
+                })
+                .catch(err => console.error("Error al copiar:", err));
+
+        } else {
+
+            // Intento 2: Método "Old School" (textarea invisible)
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+
+            // Aseguramos que no se vea pero que esté en el DOM
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+
+            textArea.focus();
+            textArea.select();
+
+            try {
+
+                document.execCommand('copy');
+                console.log("Copiado con execCommand");
+
+                setCopied(true)
+
+                setTimeout(() => {
+                    setCopied(false)
+                }, 1500)
+
+            } catch (err) {
+                console.error("Fallo total al copiar:", err);
+            }
+
+            document.body.removeChild(textArea);
+
+        }
+
+    };
+
+    const styles = getStyles(isDark);
+
+    function itemActive() {
+
+        return isDark ? '#1e293b' : "#dfdfdf"
+
+    }
+
+    return (
+
+        <>
+
+            <div style={styles.container}>
+
+                <div style={styles.toolbar}>
+
+                    <h3 style={{ color: '#bcbcbc' }}>Mega Menu CMS</h3>
+
+                    {/* <img style={styles.logo} src={ isDark ? 'assets/logo/logo_kudos_light.svg' : 'assets/logo/logo_kudos_dark.svg' } alt="logo_kudos" /> */}
+
+                    <div style={styles.toolbarButtonContainer}>
+                        <button className='btn gradient-orange' onClick={save}>💾 Guardar cambios</button>
+                        <button className='btn gradient-gray' onClick={() => setIsDark(prev => !prev)}>{isDark ? '🌙 Modo oscuro' : '☀️ Modo claro'}</button>
+                    </div>
+
+                </div>
+
+                {hasChanges && (
+                    <div style={styles.unsaved}>
+                        ⚠️ Cambios sin guardar
+                    </div>
+                )}
+
+                <div style={styles.content}>
+
+                    {/* SIDEBAR */}
+                    <div style={styles.sidebar}>
+
+                        <h5>Árbol del menú</h5>
+
+                        <div style={{ marginTop: '20px', marginBottom: '20px' }}>
+
+                            {tree.map(dep => (
+
+                                <div key={dep.department_id}>
+
+                                    {/* DEP */}
+                                    <div
+                                        style={{
+                                            ...styles.item,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 6,
+                                            background: dep.department_id === selectedId ? itemActive() : 'transparent'
+                                        }}
+                                    >
+
+                                        {dep.categories.length > 0 && (
+
+                                            <span
+                                                onClick={() => toggleExpand(dep.department_id)}
+                                                style={{ cursor: 'pointer', fontSize: '12px' }}
+                                            >
+                                                {expanded[dep.department_id] ? '▼' : '▶'}
+                                            </span>
+
+                                        )}
+
+                                        <span
+                                            onClick={() => {
+                                                setSelectedId(dep.department_id);
+                                                toggleExpand(dep.department_id);
+                                            }}
+                                            style={{
+                                                color: dep.styles?.color || '#fff',
+                                                fontWeight: dep.styles?.negrita ? 'bold' : 'normal',
+                                                fontStyle: dep.styles?.curisva ? 'italic' : 'normal',
+                                                textDecoration: dep.styles?.subrayado ? 'underline' : 'none'
+                                            }}
+                                        >
+                                            {expanded[dep.department_id] ? '📂' : '📁'} {dep.department_name}
+                                        </span>
+
+                                    </div>
+
+                                    {/* CAT */}
+                                    {expanded[dep.department_id] &&
+                                        dep.categories?.map(cat => (
+                                            <div key={cat.category_id}>
+
+                                                {/* CATEGORÍA */}
+                                                <div
+                                                    style={{
+                                                        ...styles.item,
+                                                        paddingLeft: 25,
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: 6,
+                                                        background: cat.category_id === selectedId ? itemActive() : 'transparent'
+                                                    }}
+                                                >
+                                                    {/* TOGGLE */}
+                                                    {cat.subcategories.length > 0 && (
+
+                                                        <span
+                                                            onClick={() => toggleExpand(cat.category_id)}
+                                                            style={{ cursor: 'pointer', fontSize: '12px' }}
+                                                        >
+                                                            {expanded[cat.category_id] ? '▼' : '▶'}
+                                                        </span>
+                                                    )}
+
+                                                    {/* LABEL */}
+                                                    <span
+                                                        onClick={() => {
+                                                            setSelectedId(cat.category_id);
+                                                            toggleExpand(cat.category_id);
+                                                        }}
+                                                        style={{
+                                                            color: cat.styles?.color || '#fff',
+                                                            fontWeight: cat.styles?.negrita ? 'bold' : 'normal',
+                                                            fontStyle: cat.styles?.curisva ? 'italic' : 'normal',
+                                                            textDecoration: cat.styles?.subrayado ? 'underline' : 'none'
+                                                        }}
+                                                    >
+                                                        {expanded[cat.category_id] ? '📂' : '📁'} {cat.category_name}
+                                                    </span>
+                                                </div>
+
+                                                {/* SUBCATEGORÍAS */}
+                                                {expanded[cat.category_id] &&
+                                                    cat.subcategories?.map(sub => (
+                                                        <div
+                                                            key={sub.subcategory_id}
+                                                            onClick={() => setSelectedId(sub.subcategory_id)}
+                                                            style={{
+                                                                ...styles.item,
+                                                                paddingLeft: 45,
+                                                                background: sub.subcategory_id === selectedId ? itemActive() : 'transparent'
+                                                            }}
+                                                        >
+                                                            <span style={{
+                                                                color: sub.styles?.color || '#fff',
+                                                                fontWeight: sub.styles?.negrita ? 'bold' : 'normal',
+                                                                fontStyle: sub.styles?.curisva ? 'italic' : 'normal',
+                                                                textDecoration: sub.styles?.subrayado ? 'underline' : 'none'
+                                                            }}>
+                                                                📄 {sub.subcategory_name}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                            </div>
+                                        ))}
+
+                                </div>
+                            ))}
+
+                        </div>
+
+                        <button className='btn gradient-orange' onClick={addDepartment}><span>+</span> <p>Departamento</p></button>
+
+                    </div>
+
+                    {/* EDITOR */}
+                    <div style={styles.editor}>
+
+                        {selected ? (
+                            <>
+                                <h2>Editar</h2>
+
+                                <>
+                                    {!isCategory && ( //edit department
+
+                                        <>
+
+                                            {!isSubcategory && ( //edit department
+
+                                                <>
+                                                    <button className='btn gradient-orange' onClick={addCategory}><span>+</span> <p>Categoría</p></button>
+                                                    <button onClick={() => moveDepartment('up')}>
+                                                        ⬆️
+                                                    </button>
+                                                    <button onClick={() => moveDepartment('down')}>
+                                                        ⬇️
+                                                    </button>
+                                                </>
+
+                                            )}
+
+                                        </>
+
+                                    )}
+
+                                    {isCategory && ( //edit category
+
+                                        <>
+                                            <button className='btn gradient-orange' onClick={addSubcategory}><span>+</span> <p>Subcategoría</p></button>
+                                            <button onClick={() => moveCategory('up')}>
+                                                ⬆️
+                                            </button>
+
+                                            <button onClick={() => moveCategory('down')}>
+                                                ⬇️
+                                            </button>
+
+                                            <button style={styles.deleteBtn} onClick={deleteCategory}>
+                                                ❌ Eliminar Categoría
+                                            </button>
+                                        </>
+
+                                    )}
+
+                                    {isSubcategory && ( //edit subcategory
+                                        <>
+                                            <button onClick={() => moveSubcategory('up')}>
+                                                ⬆️
+                                            </button>
+
+                                            <button onClick={() => moveSubcategory('down')}>
+                                                ⬇️
+                                            </button>
+                                            <button style={styles.deleteBtn} onClick={deleteSubcategory}>
+                                                ❌ Eliminar Subcategory
+                                            </button>
+                                        </>
+                                    )}
+
+                                </>
+
+                                {/* NAME */}
+                                <label style={styles.label}>Nombre</label>
+                                <input
+                                    style={styles.input}
+                                    value={
+                                        selected.department_name ?? selected.category_name ?? selected.subcategory_name ?? ''
+                                    }
+                                    onChange={(e) =>
+                                        updateField(
+                                            selected.department_name !== undefined
+                                                ? 'department_name'
+                                                : selected.category_name !== undefined
+                                                    ? 'category_name'
+                                                    : 'subcategory_name',
+                                            e.target.value
+                                        )
+                                    }
+                                />
+
+                                {/* URL */}
+                                <label style={styles.label}>URL</label>
+                                <input
+                                    style={styles.input}
+                                    value={selected.url || ''}
+                                    onChange={(e) => updateField('url', e.target.value)}
+                                />
+
+                                {/* IMAGE (AMBOS) */}
+                                {!isSubcategory && (
+
+                                    <>
+                                        <label style={styles.label}>Imagen</label>
+                                        <input
+                                            style={styles.input}
+                                            value={
+                                                selected.department_image || selected.category_image || ''
+                                            }
+                                            onChange={(e) =>
+                                                updateField(
+                                                    selected.department_image !== undefined
+                                                        ? 'department_image'
+                                                        : 'category_image',
+                                                    e.target.value
+                                                )
+                                            }
+                                        />
+
+                                        {/* PREVIEW */}
+                                        {(selected.department_image || selected.category_image) && (
+                                            <div style={{ marginTop: 10 }}>
+                                                <img
+                                                    src={selected.department_image || selected.category_image}
+                                                    alt=""
+                                                    style={{
+                                                        width: 120,
+                                                        height: 120,
+                                                        objectFit: 'cover',
+                                                        borderRadius: 8,
+                                                        border: '1px solid #1e293b'
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+                                    </>
+
+                                )}
+
+
+                                {/* STYLES */}
+                                <label style={styles.label}>Color</label>
+                                <input
+                                    type="color"
+                                    value={selected.styles?.color || '#000000'}
+                                    onChange={(e) =>
+                                        updateNestedField('styles', 'color', e.target.value)
+                                    }
+                                />
+
+                                <div>
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            checked={selected.styles?.negrita || false}
+                                            onChange={(e) =>
+                                                updateNestedField('styles', 'negrita', e.target.checked)
+                                            }
+                                        />
+                                        Negrita
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            checked={selected.styles?.curisva || false}
+                                            onChange={(e) =>
+                                                updateNestedField('styles', 'curisva', e.target.checked)
+                                            }
+                                        />
+                                        Cursiva
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            checked={selected.styles?.subrayado || false}
+                                            onChange={(e) =>
+                                                updateNestedField('styles', 'subrayado', e.target.checked)
+                                            }
+                                        />
+                                        Subrayado
+                                    </label>
+                                </div>
+
+                                {/* VISIBILITY */}
+                                <label style={styles.label}>Visibilidad</label>
+
+                                <div>
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            checked={selected.visibility?.desktop || false}
+                                            onChange={(e) =>
+                                                updateNestedField('visibility', 'desktop', e.target.checked)
+                                            }
+                                        />
+                                        Desktop
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            checked={selected.visibility?.mobile || false}
+                                            onChange={(e) =>
+                                                updateNestedField('visibility', 'mobile', e.target.checked)
+                                            }
+                                        />
+                                        Mobile
+                                    </label>
+                                </div>
+
+                                {/* DELETE SOLO DEP */}
+                                {!isCategory && !isSubcategory && (
+                                    <button style={styles.deleteBtn} onClick={deleteDepartment}>
+                                        ❌ Eliminar Departamento
+                                    </button>
+                                )}
+                            </>
+                        ) : (
+                            <p>Seleccioná un elemento</p>
+                        )}
+                    </div>
+
+                </div>
+
+            </div>
+
+            {showSaved && (
+
+                <div style={styles.savedToastWrapper}>
+
+                    <div style={styles.savedToastContainer}>
+                        {savedMsg}
+                    </div>
+
+                </div>
+
+            )}
+
+            {showJsonModal && (
+
+                <div style={styles.modalOverlay}>
+
+                    <div style={styles.modal}>
+
+                        <h3 style={styles.modalTitle}>JSON generado</h3>
+
+                        <textarea
+                            value={JSON.stringify(tree)}
+                            readOnly
+                            style={styles.jsonBox}
+                        />
+
+                        <div style={{ display: 'flex', gap: 10, marginTop: 15 }}>
+
+                            <button className='btn gradient-orange' onClick={() => { handleCopy(tree) }}>
+                                📋 Copiar
+                            </button>
+
+                            <button className='btn gradient-gray' onClick={() => setShowJsonModal(false)}>
+                                Cerrar
+                            </button>
+
+                        </div>
+
+                        {copied && (
+
+                            <div style={styles.copyToastWrappper}>
+
+                                <div style={styles.copyToastContainer}>
+                                    ✔ JSON copiado al portapapeles
+                                </div>
+
+                            </div>
+
+                        )}
+
+                    </div>
+
+                </div>
+
+            )}
+
+        </>
+
+    )
+}
+
+export default App
+
+const isDark = false // después lo podemos togglear
+
+const getStyles = (isDark) => ({
+
+    container: {
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        background: isDark ? '#101935' : '#F5F6F8',
+        color: isDark ? '#e5e7eb' : '#2E2E2E',
+        fontFamily: 'Inter, system-ui, sans-serif'
+    },
+
+    toolbar: {
+        height: 60,
+        background: isDark ? '#020617' : '#FFFFFF',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 20px',
+        borderBottom: `1px solid ${isDark ? '#1e293b' : '#E5E7EB'}`
+    },
+
+    logo: {
+        height: '50px'
+    },
+
+    toolbarButtonContainer: {
+        display: 'flex',
+        gap: '10px'
+    },
+
+    content: {
+        flex: 1,
+        display: 'flex',
+        overflow: 'hidden'
+    },
+
+    sidebar: {
+        minWidth: '280px',
+        padding: 16,
+        borderRight: `1px solid ${isDark ? '#1e293b' : '#E5E7EB'
+            }`,
+        overflowY: 'auto',
+        background: isDark ? '#020617' : '#FFFFFF'
+    },
+
+    editor: {
+        flex: 1,
+        padding: 30,
+        overflowY: 'auto',
+        background: isDark ? '#020617' : '#FFFFFF'
+    },
+
+    item: {
+        padding: '10px 12px',
+        cursor: 'pointer',
+        borderRadius: 8,
+        transition: 'all 0.2s ease',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6
+    },
+
+    secondaryBtn: {
+    },
+
+    deleteBtn: {
+        background: '#ef4444',
+        color: '#fff',
+        padding: '8px 12px',
+        borderRadius: 8,
+        border: 'none',
+        cursor: 'pointer',
+        marginTop: 20
+    },
+
+    input: {
+        width: '100%',
+        padding: 12,
+        borderRadius: 8,
+        border: `1px solid ${isDark ? '#1e293b' : '#E5E7EB'} `,
+        background: isDark ? '#020617' : '#F9FAFB',
+        color: isDark ? '#fff' : '#111827',
+        marginBottom: 12
+    },
+
+    label: {
+        fontSize: 13,
+        marginTop: 10,
+        marginBottom: 6,
+        display: 'block',
+        color: isDark ? '#9ca3af' : '#6B7280'
+    },
+
+    savedToastWrapper: {
+        zIndex: 1001,
+        position: 'fixed',
+        top: 0,
+        right: 0,
+        display: 'flex',
+        justifyContent: 'flex-end',
+        alignItems: 'flex-end',
+        width: '100%',
+        height: '100%',
+        background: 'rgba(103, 103, 103, 0.4)'
+    },
+
+    savedToastContainer: {
+        padding: '15px 20px',
+        marginBottom: '15px',
+        marginRight: '15px',
+        background: '#FFFFFF',
+        borderRadius: 8,
+        color: '#2e2e2e',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+    },
+
+    unsaved: {
+        background: isDark ? '#3f1d1d' : '#FDECEC',
+        border: `1px solid ${isDark ? '#7f1d1d' : '#F5C2C0'} `,
+        padding: 10,
+        textAlign: 'center',
+        fontSize: 13,
+        color: isDark ? '#fca5a5' : '#7f1d1d'
+    },
+
+    modalOverlay: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        background: 'rgba(0,0,0,0.6)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 999
+    },
+
+    modal: {
+        position: 'relative',
+        width: '600px',
+        maxWidth: '90%',
+        background: isDark ? '#020617' : '#ffffff',
+        padding: 20,
+        borderRadius: 12,
+        boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
+    },
+
+    modalTitle: {
+        color: isDark ? '#FFFFFF' : '#000000'
+    },
+
+    jsonBox: {
+        marginTop: '15px',
+        padding: 10,
+        width: '100%',
+        height: '300px',
+        boxSizing: 'border-box',
+        borderRadius: 8,
+        border: `1px solid ${isDark ? '#1e293b' : '#E5E7EB'} `,
+        background: isDark ? '#020617' : '#F9FAFB',
+        color: isDark ? '#e5e7eb' : '#111827',
+        fontSize: 12,
+        fontFamily: 'monospace',
+        resize: 'none'
+    },
+
+    copyToastWrappper: {
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+        height: '100%',
+        background: isDark ? 'rgba( 255, 255, 255, 0.1 )' : 'rgba( 0, 0, 0, 0.1 )'
+    },
+
+    copyToastContainer: {
+        padding: '15px 20px',
+        borderRadius: '4px',
+        color: isDark ? '#000000' : '#FFFFFF',
+        background: isDark ? '#FFFFFF' : '#FF5A2C'
+    }
+
+})
