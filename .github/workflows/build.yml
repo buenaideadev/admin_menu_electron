@@ -19,7 +19,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 20
 
       - name: Install dependencies
         run: npm install
@@ -28,16 +28,14 @@ jobs:
         run: npm run build
 
       - name: Build Electron app
-        # run: npx electron-builder
         run: npx electron-builder --publish=never
 
-        - name: Upload Build Artifacts
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: App-${{ matrix.os }} # Esto creará un paquete por cada sistema operativo
+          name: App-${{ matrix.os }}
           path: |
             dist/*.exe
             dist/*.AppImage
             dist/*.dmg
             dist/*.zip
-          if-no-files-found: error
