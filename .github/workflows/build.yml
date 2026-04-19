@@ -19,7 +19,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 18
 
       - name: Install dependencies
         run: npm install
@@ -28,5 +28,4 @@ jobs:
         run: npm run build
 
       - name: Build Electron app
-        # run: npx electron-builder
-        run: npx electron-builder --publish=never
+        run: npx electron-builder
