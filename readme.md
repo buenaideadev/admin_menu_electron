@@ -1,14 +1,14 @@
-para generar multiples instalable debemos usar github actions:
+## Para generar multiples instalable debemos usar github actions:
 
-1. en la raiz del proyecto tiramos:
+1 - En la raiz del proyecto tiramos:
 
 mkdir -p .github/workflowsç
 
-2. dentro de la carpeta workfows creamos archivo:
+2 - dentro de la carpeta workfows creamos archivo:
 
-build.yml
+  build.yml
 
-3. dentro de ese archivo ponemos este contenido:
+3 - dentro de ese archivo ponemos este contenido:
 
 ```
 name: Build Electron App
@@ -44,4 +44,14 @@ jobs:
         run: npx electron-builder
 ```
 
-4. Paso los cambios siempre a git
+4 - Paso los cambios siempre a git
+
+## Para ir viendo los cambios realizados en web tiramos en consola:
+
+`npm run start`
+
+## Para actualizar proyecto electron con los cambios web tiramos en consola:
+
+1. `npm run build`
+
+2. `npm run electron`
