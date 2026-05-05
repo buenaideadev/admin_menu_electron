@@ -33,3 +33,30 @@ button {
     color: #fff;
     background: transparent linear-gradient(90deg, #706f8a, #595865) 0 0 no-repeat padding-box;
 }
+
+.iconAddDelete {
+    height: 16px;
+}
+
+.upDownAddContainer {
+    margin-top: 15px;
+    display: flex;
+    gap: 15px;
+}
+
+.upDownContainer {
+    display: flex;
+    gap: 5px;
+}
+
+.upDownContainer button {
+    box-sizing: border-box;
+    padding: 5px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 35px;
+    border-radius: 4px;
+    background: #706f8a;
+}

@@ -37,18 +37,18 @@ export const createCategory = () => ({
 })
 
 // 🔵 Crear subcategoría
-// export const createSubcategory = () => ({
-//   subcategory_id: generateId('sub'),
-//   subcategory_name: 'Nueva subcategoría',
-//   url: '',
-//   styles: {
-//     color: '#000000',
-//     negrita: false,
-//     curisva: false,
-//     subrayado: false
-//   },
-//   visibility: {
-//     desktop: true,
-//     mobile: true
-//   }
-// })
+export const createSubcategory = () => ({
+  subcategory_id: Date.now(),
+  subcategory_name: 'Nueva subcategoría',
+  url: '',
+  styles: {
+    color: '#000000',
+    negrita: false,
+    curisva: false,
+    subrayado: false
+  },
+  visibility: {
+    desktop: true,
+    mobile: true
+  }
+})

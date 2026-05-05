@@ -45,7 +45,7 @@ function createWindow() {
   win.setMenu(null)
 
   const isDev = process.env.NODE_ENV === 'development'
-  console.log("IS DEV", isDev)
+  
   if (isDev) {
 
     win.loadURL('http://localhost:5173')
