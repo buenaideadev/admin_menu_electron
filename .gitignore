@@ -1,26 +1,82 @@
-# node
+# dependencies
 node_modules/
+.pnp/
+.pnp.cjs
 
-# build frontend
+# builds
 dist/
-
-# electron build
+build/
+coverage/
 release/
 out/
+dist-electron/
 *.AppImage
 *.exe
 *.dmg
+*.zip
+*.deb
+*.rpm
+*.blockmap
 
 # logs
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# OS
+# environment and local secrets
+.env
+.env.*
+!.env.example
+!.env.sample
+.npmrc
+.yarnrc
+.netrc
+
+# keys, certificates and signing assets
+*.pem
+*.key
+*.p8
+*.p12
+*.pfx
+*.cer
+*.crt
+*.csr
+*.jks
+*.keystore
+*.mobileprovision
+AuthKey_*.p8
+
+# local config and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*.sublime-workspace
+
+# OS files
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# env
-.env
-
-# electron cache
+# caches and temp files
 .cache/
+.vite/
+.eslintcache
+.turbo/
+.parcel-cache/
+.electron/
+.electron-gyp/
+tmp/
+temp/
+*.tmp
+*.temp
+
+# backups
+*.bak
+*.bk
+*.backup
